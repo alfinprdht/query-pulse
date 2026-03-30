@@ -1,6 +1,6 @@
 <?php
 
-namespace Alfinprdht\PerformanceQueryInspector;
+namespace Alfinprdht\QueryPulse;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -16,6 +16,16 @@ class QueryPulseServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->commands([
+            \Alfinprdht\QueryPulse\Commands\QueryPulseReportCommand::class
+        ]);
+
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
+        $kernel->pushMiddleware(\Alfinprdht\QueryPulse\Middleware\QueryPulseMiddleware::class);
+
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/query-pulse.php' => config_path('query-pulse.php'),
