@@ -2,33 +2,33 @@
 
 namespace Alfinprdht\QueryPulse\Middleware;
 
+use Alfinprdht\QueryPulse\Collector\QueryCollector;
 use Closure;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * The query pulse middleware.
+ * @package Alfinprdht\QueryPulse\Middleware
+ */
 class QueryPulseMiddleware
 {
-    public function handle($request, Closure $next)
+    /**
+     * Handle the request.
+     * @param \Illuminate\Http\Request $request The request object.
+     * @param \Closure $next The next closure.
+     * @return mixed The response.
+     */
+    public function handle($request, \Closure $next)
     {
-        $queries = [];
-        $totalQueryTime = 0;
-        DB::listen(function ($query) use (&$queries, &$totalQueryTime) {
-            $time = $query->time;
-            $queries[] = [
-                'sql' => $query->sql,
-                'bindings' => $query->bindings,
-                'time' => $time
-            ];
-            $totalQueryTime += $time;
-        });
+        if (config('query-pulse.enabled') === false) {
+            return $next($request);
+        }
+
+        $collector = new QueryCollector($request);
+        $collector->listen();
 
         $response = $next($request);
 
-        $data = [
-            'url' => $request->method() . ' ' . $request->path(),
-            'query_executed' => json_encode($queries),
-            'total_query_time' => $totalQueryTime,
-        ];
-        DB::table('query_pulse')->insert($data);
+        $collector->save();
 
         return $response;
     }
