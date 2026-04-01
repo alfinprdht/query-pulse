@@ -21,8 +21,6 @@ class QueryPulseReportCommand extends Command
     protected $description = 'Generate a report on specific URL';
     public function handle()
     {
-        $this->info('Generating report for URL: ' . $this->argument('url'));
-
         $url = $this->argument('url');
 
         $analyzer = new HeuristicsAnalyzer($url);
@@ -30,7 +28,7 @@ class QueryPulseReportCommand extends Command
 
         $analysisResult = $analyzer->getAnalysisResult();
 
-        $reporting = new LogReporting($analysisResult);
+        $reporting = new LogReporting($url, $analysisResult);
         $reporting->report($this);
     }
 }

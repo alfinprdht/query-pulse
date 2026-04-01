@@ -22,9 +22,12 @@ class LogReporting extends Reporting
             ['Total Query Time', $metrics->totalQueryTime . ' ms'],
             ['Total Query Count', $metrics->totalQueryCount],
         ];
+        $command->info('Generating report for URL: ' . $this->url);
         $command->table($headers, $rows);
 
         $command->info('Score: ' . $this->analysisResult->score);
         $command->warn('Status: ' . $this->analysisResult->status);
+
+        $command->line('See the report at: ' . config('app.url') . '/query-pulse/report/' . md5($this->url));
     }
 }

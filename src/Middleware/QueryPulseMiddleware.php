@@ -19,7 +19,10 @@ class QueryPulseMiddleware
      */
     public function handle($request, \Closure $next)
     {
-        if (config('query-pulse.enabled') === false) {
+        if (
+            config('query-pulse.enabled') === false
+            || $request->is('query-pulse') || $request->is('query-pulse/*')
+        ) {
             return $next($request);
         }
 

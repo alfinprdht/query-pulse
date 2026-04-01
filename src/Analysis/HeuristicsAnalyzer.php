@@ -14,7 +14,7 @@ use Alfinprdht\QueryPulse\Analysis\ScoreCalculator;
 
 class HeuristicsAnalyzer
 {
-    private string $url;
+    public string $url;
 
     public float $averageQueryTime;
 
@@ -31,8 +31,11 @@ class HeuristicsAnalyzer
         $this->url = $url;
         $this->averageQueryTime = 0;
         $this->queries = DB::table('query_pulse')
+            ->select('query_executed', 'total_query_time', 'url', 'id')
             ->where('url', $url)
+            ->where('total_query_time', '>', 0)
             ->orderBy('id', 'desc')
+            ->limit(10)
             ->get();
         $this->analysisResult = new AnalysisResultDto(
             score: 0,
@@ -68,7 +71,11 @@ class HeuristicsAnalyzer
      */
     public function analyze(): void
     {
-        $this->averageQueryTime = $this->queries->avg('total_query_time');
+        $this->averageQueryTime = round(
+            $this->queries
+                ->avg('total_query_time'),
+            2
+        );
 
         $latestQueryPulse = new QueryPulseDto(
             $this->url,
@@ -77,6 +84,7 @@ class HeuristicsAnalyzer
 
         $metrics = new MetricsDto();
         $details = new DetailDto();
+        $issues = [];
 
         foreach ($latestQueryPulse->queryExecuted as $query) {
             if (
@@ -84,6 +92,14 @@ class HeuristicsAnalyzer
             ) {
                 $metrics->slowQueryTime += 1;
                 $details->slowQueryTime[] = $query['sql'];
+                $issues[] = [
+                    'type' => 'slow_query',
+                    'fingerprint' => $query['sql'],
+                    'count' => 1,
+                    'time' => $query['time'],
+                    'suggestion' => 'Review filters, joins, selected columns, and indexes.',
+                    'trace' => $query['trace'],
+                ];
             }
             if ($this->hasWildcardFetch($query['sql'])) {
                 $metrics->supiciousWildcardFetch += 1;
@@ -93,55 +109,64 @@ class HeuristicsAnalyzer
             $metrics->totalQueryCount += 1;
         }
 
-        $issues = [];
-
         $supiciousWildcardFetchData = collect(
             $latestQueryPulse->queryExecuted
         );
 
         $supiciousWildcardFetchData->filter(function ($query) {
             return $this->hasWildcardFetch($query['sql']);
-        })->groupBy('sql')->each(function ($group) use (&$issues) {
+        })->transform(function ($query) {
+            $query['unique_id'] = md5(json_encode($query['sql'] . $query['trace']));
+            return $query;
+        })->groupBy('unique_id')->each(function ($group) use (&$issues) {
             $issues[] = [
                 'type' => 'supicious_wildcard_fetch',
                 'fingerprint' => $group->first()['sql'],
                 'count' => count($group),
-                'suggestion' => '',
+                'time' => $group->sum('time'),
+                'suggestion' => 'Avoid using wildcard fetches in queries',
+                'trace' => $group->first()['trace'],
             ];
         });
 
-
         $completeQuery = [];
         foreach ($latestQueryPulse->queryExecuted as $query) {
-            $completeQuery[] = Str::replaceArray('?', $query['bindings'], $query['sql']);
+            $sqlWithBindings = Str::replaceArray('?', $query['bindings'], $query['sql']);
+            $completeQuery[] = [
+                'sql_with_bindings' => $sqlWithBindings,
+                'sql' => $query['sql'],
+                'time' => $query['time'],
+                'unique_id_bindings' => md5(json_encode($sqlWithBindings . $query['trace'])),
+                'unique_id_fingerprint' => md5(json_encode($query['sql'] . $query['trace'])),
+                'trace' => $query['trace'],
+                'bindings' => $query['bindings'],
+                'bindings_md5' => md5(json_encode($query['bindings'])),
+            ];
         }
 
-        collect($completeQuery)->groupBy(function ($item) {
-            return $item;
-        })->each(function ($group) use (&$metrics, &$details, &$issues) {
-            if (
-                count($group) > Thresholds::getDuplicateBurst()
-            ) {
-                $metrics->duplicateBurst++;
-                $details->duplicateBurst[] = $group->first();
-                $issues[] = [
-                    'type' => 'duplicate_burst',
-                    'fingerprint' => $group->first(),
-                    'count' => count($group),
-                    'suggestion' => '',
-                ];
-            }
-        });
-
+        collect($completeQuery)->groupBy('unique_id_bindings')
+            ->each(function ($group) use (&$metrics, &$details, &$issues) {
+                if (
+                    count($group) > Thresholds::getDuplicateBurst()
+                ) {
+                    $metrics->duplicateBurst++;
+                    $details->duplicateBurst[] = $group->first()['sql'] ?? '';
+                    $issues[] = [
+                        'type' => 'duplicate_burst',
+                        'fingerprint' => $group->first()['sql'] ?? '',
+                        'count' => count($group),
+                        'time' => $group->sum('time'),
+                        'suggestion' => 'Avoid repeated lookup queries inside loops or transformers',
+                        'trace' => $group->first()['trace'],
+                    ];
+                }
+            });
 
         foreach (
-            collect($latestQueryPulse->queryExecuted)->groupBy('sql') as $queries
+            collect($completeQuery)->groupBy('unique_id_fingerprint') as $queries
         ) {
             if (count($queries) > 1) {
-                $clonedQuery = clone $queries;
-                $bindingMd5 = $clonedQuery->transform(function ($query) {
-                    return md5(json_encode($query['bindings']));
-                })->unique()->count();
+                $bindingMd5 = count($queries->groupBy('bindings_md5'));
                 if (
                     $bindingMd5 > Thresholds::getProbableNPlus1()
                 ) {
@@ -151,7 +176,9 @@ class HeuristicsAnalyzer
                         'type' => 'probable_n_plus_1',
                         'fingerprint' => $queries->first()['sql'],
                         'count' => $bindingMd5,
-                        'suggestion' => '',
+                        'time' => $queries->sum('time'),
+                        'suggestion' => 'Use eager loading via with() on the parent query',
+                        'trace' => $queries->first()['trace'],
                     ];
                 }
             }
@@ -159,10 +186,21 @@ class HeuristicsAnalyzer
 
         $scoreCalculator = new ScoreCalculator($metrics);
 
+
         $this->analysisResult->metrics = $metrics;
         $this->analysisResult->details = $details;
+        $this->analysisResult->issues = $issues;
         $this->analysisResult->score = $scoreCalculator->getScore();
         $this->analysisResult->status = $scoreCalculator->getStatus();
+
+        DB::table('query_pulse_report')->updateOrInsert([
+            'url' => $this->url,
+        ], [
+            'average_query_time' => $this->averageQueryTime,
+            'status' => $this->analysisResult->status,
+            'analysis_result' => json_encode($this->analysisResult),
+            'updated_at' => now(),
+        ]);
     }
 
     /**
@@ -172,5 +210,10 @@ class HeuristicsAnalyzer
     public function getAnalysisResult(): AnalysisResultDto
     {
         return $this->analysisResult;
+    }
+
+    public function getQueries(): Collection
+    {
+        return $this->queries;
     }
 }

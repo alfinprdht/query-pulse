@@ -23,8 +23,17 @@ class QueryPulseServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         $kernel = $this->app->make(\Illuminate\Contracts\Http\Kernel::class);
-        $kernel->pushMiddleware(\Alfinprdht\QueryPulse\Middleware\QueryPulseMiddleware::class);
+        $kernel->pushMiddleware(
+            \Alfinprdht\QueryPulse\Middleware\QueryPulseMiddleware::class
+        );
 
+        $this->loadRoutesFrom(__DIR__ . '/../routes/query-pulse.php');
+
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'query-pulse');
+
+        $this->publishes([
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/query-pulse'),
+        ], 'query-pulse-views');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

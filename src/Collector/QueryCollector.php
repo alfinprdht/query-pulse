@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class QueryCollector
 {
+    private const KEEP_LATEST_PER_URL = 10;
 
     /**
      * The queries executed.
@@ -44,11 +45,23 @@ class QueryCollector
     public function listen()
     {
         DB::listen(function ($query) {
+            $stack = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))
+                ->first(function ($frame) {
+                    return isset($frame['file']) &&
+                        str_contains($frame['file'], base_path('app')) &&
+                        !str_contains($frame['file'], 'vendor');
+                });
+            $trace = null;
+            if ($stack) {
+                $relativePath = str_replace(base_path() . '/', '', $stack['file']);
+                $trace = $relativePath . ':' . $stack['line'];
+            }
             $time = $query->time;
             $this->queries[] = [
                 'sql' => $query->sql,
                 'bindings' => $query->bindings,
-                'time' => $time
+                'time' => $time,
+                'trace' => $trace,
             ];
             $this->totalQueryTime += $time;
         });
@@ -60,11 +73,32 @@ class QueryCollector
      */
     public function save()
     {
-        $data = [
-            'url' => $this->request->method() . ' ' . $this->request->path(),
+        $url = $this->request->method() . ' ' . $this->request->path();
+
+        DB::table('query_pulse')
+            ->where('url', $url)
+            ->update([
+                'query_executed' => ''
+            ]);
+
+        DB::table('query_pulse')->insert([
+            'url' => $url,
             'query_executed' => json_encode($this->queries),
             'total_query_time' => $this->totalQueryTime,
-        ];
-        DB::table('query_pulse')->insert($data);
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $idsToDelete = DB::table('query_pulse')
+            ->where('url', '=', $url)
+            ->orderByDesc('id')
+            ->pluck('id')
+            ->skip(self::KEEP_LATEST_PER_URL);
+
+        if ($idsToDelete->isNotEmpty()) {
+            DB::table('query_pulse')
+                ->whereIn('id', $idsToDelete)
+                ->delete();
+        }
     }
 }
