@@ -428,10 +428,10 @@
                     <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Cluster: AWS-US-EAST-1</span>
                 </div>
                 <div class="h-4 w-px bg-outline-variant/30"></div>
-                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Last Sync: 2023-11-24 14:02:11 UTC</span>
+                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Last Sync: {{ }}</span>
             </div>
             <div class="text-[10px] font-label text-outline uppercase tracking-[0.3em]">
-                Secure Protocol: TLS 1.3 / AES-256
+                
             </div>
         </footer>
     </main>

@@ -140,13 +140,77 @@
                             type="search"
                             placeholder="Search endpoint..."
                             data-dashboard-search />
+                        <select
+                            class="bg-surface-container-highest border border-outline-variant/20 text-on-surface text-sm px-4 py-2 focus:outline-none focus:ring-1 focus:ring-primary/60"
+                            data-dashboard-status
+                        >
+                            <option value="">All status</option>
+                            <option value="CRITICAL">CRITICAL</option>
+                            <option value="POOR">POOR</option>
+                            <option value="WATCH">WATCH</option>
+                            <option value="HEALTHY">HEALTHY</option>
+                        </select>
                         <button class="px-4 py-2 bg-surface-container-high text-xs font-label uppercase tracking-widest hover:text-primary transition-colors" type="button" data-dashboard-reset>Reset</button>
+                    </div>
+                </div>
+
+                <div class="p-6 border-b border-outline-variant/10">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-surface-container-lowest/60 border border-outline-variant/15 p-5">
+                            <div class="text-on-surface-variant text-[10px] font-label uppercase tracking-widest mb-2 flex items-center space-x-2">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+                                <span>Critical endpoints</span>
+                            </div>
+                            <div class="flex items-baseline justify-between gap-4">
+                                <div class="text-4xl font-headline font-bold text-error">
+                                    {{ (int)($summary['critical_count'] ?? 0) }}
+                                </div>
+                                <div class="text-xs text-on-surface-variant">
+                                    Status = <span class="mono text-error">CRITICAL</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-surface-container-lowest/60 border border-outline-variant/15 p-5">
+                            <div class="text-on-surface-variant text-[10px] font-label uppercase tracking-widest mb-2 flex items-center space-x-2">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">warning</span>
+                                <span>Poor endpoints</span>
+                            </div>
+                            <div class="flex items-baseline justify-between gap-4">
+                                <div class="text-4xl font-headline font-bold text-error">
+                                    {{ (int)($summary['poor_count'] ?? 0) }}
+                                </div>
+                                <div class="text-xs text-on-surface-variant">
+                                    Status = <span class="mono text-error">POOR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-surface-container-lowest/60 border border-outline-variant/15 p-5">
+                            <div class="text-on-surface-variant text-[10px] font-label uppercase tracking-widest mb-2 flex items-center space-x-2">
+                                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                                <span>Highest latest total time</span>
+                            </div>
+                            <div class="flex items-baseline justify-between gap-4">
+                                <div class="text-3xl font-headline font-bold text-on-surface">
+                                    {{ number_format((float)($summary['highest_latest_total_query_time'] ?? 0), 2) }}<span class="text-outline-variant text-base font-body">ms</span>
+                                </div>
+                                <div class="text-xs text-on-surface-variant text-right">
+                                    @if(!empty($summary['highest_report_id']))
+                                        <a class="hover:text-primary transition-colors" href="{{ route('query-pulse.report', ['reportId' => $summary['highest_report_id']]) }}">
+                                            <span class="mono text-primary-fixed">{{ $summary['highest_url'] ?? '' }}</span>
+                                        </a>
+                                    @else
+                                        <span class="mono">{{ $summary['highest_url'] ?? '-' }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 @if(empty($endpoints) || $endpoints->count() === 0)
                 <div class="p-6 text-sm text-on-surface-variant">
-                    Belum ada data. Pastikan middleware Query Pulse aktif dan ada request yang masuk.
+                    No data found. Make sure Query Pulse middleware is active and there are requests coming in.
                 </div>
                 @else
                 <div class="p-6 text-xs text-on-surface-variant">
@@ -172,6 +236,7 @@
                                 <th class="px-6 py-4 font-medium text-right cursor-pointer select-none hover:text-primary transition-colors" data-sort-key="last">
                                     Last Seen <span class="ml-1 opacity-60" data-sort-indicator>↕</span>
                                 </th>
+                                <th class="px-6 py-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm" data-dashboard-tbody>
@@ -227,6 +292,16 @@
                                 ">{{ number_format($endpoint['avg_total_query_time'], 2) }}ms</td>
                                 <td class="px-6 py-4 border-b border-outline-variant/5 text-right mono text-xs text-on-surface-variant">{{ number_format($endpoint['latest_total_query_time'], 2) }}ms</td>
                                 <td class="px-6 py-4 border-b border-outline-variant/5 text-right text-xs text-on-surface-variant">{{ $endpoint['last_seen_at'] }}</td>
+                                <td class="px-6 py-4 border-b border-outline-variant/5 text-right">
+                                    <button
+                                        type="button"
+                                        class="px-3 py-1 bg-error-container/30 text-error text-xs font-bold rounded-sm hover:bg-error-container/40 transition-colors"
+                                        data-delete-endpoint
+                                        data-delete-url="{{ route('query-pulse.delete', ['reportId' => $endpoint['report_id']]) }}">
+                                        <span class="material-symbols-outlined text-sm align-middle mr-1" aria-hidden="true">delete</span>
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -245,7 +320,7 @@
                 Query Pulse Dashboard
             </div>
             <div class="text-[10px] font-label text-outline uppercase tracking-[0.3em]">
-                Secure Protocol: TLS 1.3 / AES-256
+                
             </div>
         </footer>
     </main>
@@ -258,6 +333,7 @@
             var tbody = table.querySelector('[data-dashboard-tbody]');
             var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr[data-row]'));
             var search = document.querySelector('[data-dashboard-search]');
+            var statusFilter = document.querySelector('[data-dashboard-status]');
             var reset = document.querySelector('[data-dashboard-reset]');
             var countEl = document.querySelector('[data-dashboard-count]');
             var emptyEl = document.querySelector('[data-dashboard-empty]');
@@ -274,11 +350,24 @@
 
             function applyFilter() {
                 var q = (search && search.value ? search.value : '').trim().toLowerCase();
+                var selectedStatus = (statusFilter && statusFilter.value ? statusFilter.value : '').trim().toUpperCase();
                 var visible = 0;
 
                 rows.forEach(function(row) {
                     var url = (row.getAttribute('data-url') || '').toLowerCase();
-                    var ok = q === '' || url.indexOf(q) !== -1;
+                    var rowStatus = (row.getAttribute('data-status') || '').trim().toUpperCase();
+
+                    var okSearch = (q === '' || url.indexOf(q) !== -1);
+                    var okStatus = true;
+                    if (selectedStatus !== '') {
+                        if (selectedStatus === 'HEALTHY') {
+                            okStatus = (rowStatus === '' || rowStatus === 'HEALTHY');
+                        } else {
+                            okStatus = (rowStatus === selectedStatus);
+                        }
+                    }
+
+                    var ok = okSearch && okStatus;
                     row.classList.toggle('hidden', !ok);
                     if (ok) visible++;
                 });
@@ -339,9 +428,17 @@
                 });
             }
 
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function() {
+                    applyFilter();
+                    if (sortState.key) sortRows(sortState.key, sortState.dir);
+                });
+            }
+
             if (reset) {
                 reset.addEventListener('click', function() {
                     if (search) search.value = '';
+                    if (statusFilter) statusFilter.value = '';
                     applyFilter();
                     sortState.key = null;
                     sortState.dir = 'asc';
@@ -370,6 +467,50 @@
                     sortRows(sortState.key, sortState.dir);
                 });
             }
+
+            var csrfToken = '{{ csrf_token() }}';
+            document.addEventListener('click', function(e) {
+                var btn = e.target && e.target.closest ? e.target.closest('[data-delete-endpoint]') : null;
+                if (!btn) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                var deleteUrl = btn.getAttribute('data-delete-url');
+                if (!deleteUrl) return;
+
+                if (!confirm('Delete this endpoint?')) return;
+
+                btn.disabled = true;
+                btn.classList.add('opacity-60');
+
+                fetch(deleteUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(function(resp) {
+                        return resp.json();
+                    })
+                    .then(function(data) {
+                        if (data && data.success) {
+                            window.location.reload();
+                            return;
+                        }
+                        alert((data && data.message) ? data.message : 'Failed Delete Endpoint');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-60');
+                    })
+                    .catch(function() {
+                        alert('Failed Delete Endpoint');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-60');
+                    });
+            });
 
             // initial state
             applyFilter();
