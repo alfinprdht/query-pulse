@@ -163,9 +163,6 @@
                                 <th class="px-6 py-4 font-medium cursor-pointer select-none hover:text-primary transition-colors" data-sort-key="status">
                                     Status <span class="ml-1 opacity-60" data-sort-indicator>↕</span>
                                 </th>
-                                <th class="px-6 py-4 font-medium text-right cursor-pointer select-none hover:text-primary transition-colors" data-sort-key="snapshots">
-                                    Snapshots <span class="ml-1 opacity-60" data-sort-indicator>↕</span>
-                                </th>
                                 <th class="px-6 py-4 font-medium text-right cursor-pointer select-none hover:text-primary transition-colors" data-sort-key="avg">
                                     Avg Total Time <span class="ml-1 opacity-60" data-sort-indicator>↕</span>
                                 </th>
@@ -184,7 +181,6 @@
                                 data-row
                                 data-url="{{ $endpoint['url'] }}"
                                 data-status="{{ $endpoint['status'] ?? '' }}"
-                                data-snapshots="{{ $endpoint['snapshots'] }}"
                                 data-avg="{{ $endpoint['avg_total_query_time'] }}"
                                 data-latest="{{ $endpoint['latest_total_query_time'] }}"
                                 data-last="{{ $endpoint['last_seen_at'] ?? '' }}">
@@ -220,7 +216,6 @@
                                     <span class="text-xs text-on-surface-variant">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 border-b border-outline-variant/5 text-right mono text-xs text-on-surface-variant">{{ $endpoint['snapshots'] }}</td>
                                 <td class="
                                 
                                 @if($endpoint['avg_total_query_time'] > \Alfinprdht\QueryPulse\Support\Thresholds::getSlowQueryTime())

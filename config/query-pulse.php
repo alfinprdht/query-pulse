@@ -20,4 +20,15 @@ return [
         'total_query_time' => env('QUERY_PULSE_TOTAL_QUERY_TIME', 300),
         'total_query_count' => env('QUERY_PULSE_TOTAL_QUERY_COUNT', 75),
     ],
+
+    /**
+     * Ignored URLS
+     *
+     * @var array<string>
+     */
+    'ignored_urls' => [
+        'query-pulse',
+        'query-pulse/*',
+        '.well-known/*',
+    ],
 ];

@@ -3,6 +3,7 @@
 namespace Alfinprdht\QueryPulse\Support;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class Helpers
 {
@@ -19,5 +20,48 @@ class Helpers
             ->whereRaw('md5(url) = ?', [$reportId])
             ->first()
             ?->url ?? null;
+    }
+
+    /**
+     * True if URL should be hidden (config query-pulse.ignored_urls).
+     * Supports:
+     * - exact path: "query-pulse"
+     * - wildcard path: "query-pulse/*" matches "query-pulse/test", "query-pulse/ok", …
+     * - full request key: "GET query-pulse/*" (method + space + path pattern)
+     *
+     * Stored URLs follow "METHOD path" (e.g. GET query-pulse/report/abc).
+     * @param string $url
+     * @return bool
+     */
+    public static function isUrlIgnored(string $url): bool
+    {
+        $patterns = config('query-pulse.ignored_urls', []);
+        if ($patterns === null || $patterns === []) {
+            return false;
+        }
+
+        $path = $url;
+        if (preg_match('/^[A-Z]+\s+(.+)$/u', $url, $m)) {
+            $path = $m[1];
+        }
+
+        foreach ($patterns as $pattern) {
+            if ($pattern === null || $pattern === '') {
+                continue;
+            }
+
+            if (preg_match('/^[A-Z]+\s+/u', $pattern)) {
+                if (Str::is($pattern, $url)) {
+                    return true;
+                }
+                continue;
+            }
+
+            if (Str::is($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
