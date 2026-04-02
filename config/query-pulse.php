@@ -31,4 +31,9 @@ return [
         'query-pulse/*',
         '.well-known/*',
     ],
+
+    /**
+     * Auto Generate Report every n request
+     */
+    'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 100),
 ];

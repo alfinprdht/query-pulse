@@ -2,6 +2,7 @@
 
 namespace Alfinprdht\QueryPulse\Collector;
 
+use Alfinprdht\QueryPulse\Analysis\HeuristicsAnalyzer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -28,14 +29,23 @@ class QueryCollector
     private Request $request;
 
     /**
+     * The number of requests to generate a report.
+     * @var int
+     */
+
+    private int $autoGenerateReportEvery;
+
+    /**
      * Constructor for the QueryCollector class.
      * @param \Illuminate\Http\Request $request The request object.
      */
+
     public function __construct(Request $request)
     {
         $this->queries = [];
         $this->totalQueryTime = 0;
         $this->request = $request;
+        $this->autoGenerateReportEvery = config('query-pulse.auto_generate_report_every');
     }
 
     /**
@@ -100,5 +110,43 @@ class QueryCollector
                 ->whereIn('id', $idsToDelete)
                 ->delete();
         }
+
+        $this->handleGenerateReport($url);
+    }
+
+    /**
+     * Handle the generation of the report.
+     * @param string $url
+     * @return bool
+     */
+    private function handleGenerateReport(string $url): bool
+    {
+        if ($this->autoGenerateReportEvery > 0) {
+
+            $lastQueryPulseReport = DB::table('query_pulse_report')
+                ->where('url', $this->request->method() . ' ' . $this->request->path())
+                ->orderByDesc('id')
+                ->first();
+
+            if (empty($lastQueryPulseReport)) {
+                $analyzer = new HeuristicsAnalyzer($url);
+                $analyzer->analyze();
+                return true;
+            }
+
+            $queryPulse = DB::table('query_pulse')
+                ->where('url', $this->request->method() . ' ' . $this->request->path())
+                ->orderByDesc('id')
+                ->where('created_at', '>', $lastQueryPulseReport->updated_at)
+                ->get();
+
+            if (count($queryPulse) >= $this->autoGenerateReportEvery) {
+                $analyzer = new HeuristicsAnalyzer($url);
+                $analyzer->analyze();
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 }
