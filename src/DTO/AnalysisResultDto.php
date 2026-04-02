@@ -14,9 +14,16 @@ class AnalysisResultDto
     public function __construct(
         public float $score = 0,
         public string $status = '',
-        public MetricsDto $metrics,
-        public DetailDto $details,
+        public MetricsDto|array $metrics = [],
+        public DetailDto|array $details = [],
         public array $issues = [],
         public string $lastFetchedAt = '',
-    ) {}
+    ) {
+        if(!empty($metrics) && is_array($metrics)) {
+            $this->metrics = new MetricsDto(...$metrics);
+        }
+        if(!empty($details) && is_array($details)) {
+            $this->details = new DetailDto(...$details);
+        }
+    }
 }

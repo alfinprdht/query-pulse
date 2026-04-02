@@ -3,7 +3,6 @@
 namespace Alfinprdht\QueryPulse\Reporting;
 
 use Alfinprdht\QueryPulse\Reporting\Reporting;
-use Illuminate\Console\Command;
 
 class WebReporting extends Reporting
 {
