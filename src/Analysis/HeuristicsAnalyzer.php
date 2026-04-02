@@ -31,7 +31,7 @@ class HeuristicsAnalyzer
         $this->url = $url;
         $this->averageQueryTime = 0;
         $this->queries = DB::table('query_pulse')
-            ->select('query_executed', 'total_query_time', 'url', 'id')
+            ->select('query_executed', 'total_query_time', 'url', 'id', 'created_at')
             ->where('url', $url)
             ->where('total_query_time', '>', 0)
             ->orderBy('id', 'desc')
@@ -80,6 +80,7 @@ class HeuristicsAnalyzer
         $latestQueryPulse = new QueryPulseDto(
             $this->url,
             $this->queries->first()->query_executed ?? '',
+            $this->queries->first()->created_at ?? '',
         );
 
         $metrics = new MetricsDto();
@@ -192,7 +193,7 @@ class HeuristicsAnalyzer
         $this->analysisResult->issues = $issues;
         $this->analysisResult->score = $scoreCalculator->getScore();
         $this->analysisResult->status = $scoreCalculator->getStatus();
-
+        $this->analysisResult->lastFetchedAt = $latestQueryPulse->createdAt;
         DB::table('query_pulse_report')->updateOrInsert([
             'url' => $this->url,
         ], [

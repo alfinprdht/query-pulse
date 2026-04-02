@@ -332,7 +332,7 @@
             <section class="bg-surface-container-low overflow-hidden">
                 <div class="p-6 border-b border-outline-variant/15 flex justify-between items-center">
                     <h2 class="font-headline font-bold text-lg tracking-tight">Classification</h2>
-                    <div class="flex space-x-2">
+                    <div class="flex space-x-2" style="display: none;">
                         <button class="px-4 py-2 bg-surface-container-high text-xs font-label uppercase tracking-widest hover:text-primary transition-colors">Export .LOG</button>
                         <button class="px-4 py-2 bg-primary text-on-primary text-xs font-bold font-label uppercase tracking-widest rounded-sm">Snapshot Trace</button>
                     </div>
@@ -428,7 +428,7 @@
                     <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Cluster: AWS-US-EAST-1</span>
                 </div>
                 <div class="h-4 w-px bg-outline-variant/30"></div>
-                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Last Sync: {{ }}</span>
+                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Last Sync: {{ $lastSync }}</span>
             </div>
             <div class="text-[10px] font-label text-outline uppercase tracking-[0.3em]">
                 

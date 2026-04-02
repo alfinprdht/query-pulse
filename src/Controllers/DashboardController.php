@@ -49,9 +49,11 @@ class DashboardController extends Controller
         $analyzer = new HeuristicsAnalyzer($fullUrl);
         $analyzer->analyze();
 
+        $analysisResult = $analyzer->getAnalysisResult();
+
         $reporting = new WebReporting(
             $fullUrl,
-            $analyzer->getAnalysisResult()
+            $analysisResult
         );
 
         $queryPulse = $analyzer->getQueries();
@@ -71,6 +73,7 @@ class DashboardController extends Controller
             'averageQueryTime' => $analyzer->averageQueryTime,
             'result' => $reporting->result(),
             'transformedQueryPulse' => $transformedQueryPulse,
+            'lastSync' => $analysisResult->lastFetchedAt,
         ]);
     }
 

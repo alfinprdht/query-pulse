@@ -17,5 +17,6 @@ class AnalysisResultDto
         public MetricsDto $metrics,
         public DetailDto $details,
         public array $issues = [],
+        public string $lastFetchedAt = '',
     ) {}
 }
