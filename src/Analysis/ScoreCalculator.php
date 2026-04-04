@@ -43,7 +43,7 @@ class ScoreCalculator
         if ($this->metrics->totalQueryCount > Thresholds::getTotalQueryCount()) {
             $this->score -= 10;
         }
-        return $this->score;
+        $this->score = $this->score > 0 ? $this->score : 0;
     }
 
     /**

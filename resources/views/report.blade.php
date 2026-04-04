@@ -315,7 +315,7 @@
                             </div>
                             @if($issue['type'] == 'slow_query')
 
-                            <pre class="mt-2 p-3 bg-surface-container-highest border border-outline-variant/20 overflow-x-auto text-[12px] leading-relaxed font-mono text-on-surface">
+                            <pre style="max-height: 210px; overflow-y: auto;" class="mt-2 p-3 bg-surface-container-highest border border-outline-variant/20 overflow-x-auto text-[12px] leading-relaxed font-mono text-on-surface">
 <code class="whitespace-pre">{{ $issue['description'] }}</code>
 </pre>
                             @else
@@ -368,15 +368,17 @@
                                 </td>
                                 <td class="px-6 py-4 border-b border-outline-variant/5">
                                     <div class="flex space-x-2">
-                                        @if($issue['type'] == 'slow_query')
-                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">SLOW QUERY</span>
-                                        @elseif($issue['type'] == 'duplicate_burst')
-                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">DUPLICATE BURST</span>
-                                        @elseif($issue['type'] == 'probable_n_plus_1')
-                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">PROBABLE N+1</span>
-                                        @else
-                                        <span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold tracking-widest text-on-surface-variant uppercase">SUSPICIOUS WILDCARD FETCH</span>
-                                        @endif
+                                        @foreach($issue['type'] as $type)
+                                            @if($type == 'slow_query')
+                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">SLOW QUERY</span>
+                                            @elseif($type == 'duplicate_burst')
+                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">DUPLICATE BURST</span>
+                                            @elseif($type == 'probable_n_plus_1')
+                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">PROBABLE N+1</span>
+                                            @else
+                                            <span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold tracking-widest text-on-surface-variant uppercase">SUSPICIOUS WILDCARD FETCH</span>
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 border-b border-outline-variant/5 mono text-xs">{{ $issue['count'] }}</td>
@@ -408,7 +410,9 @@
                                         @if(!empty($issue['suggestion']))
                                         <div>
                                             <div class="text-[10px] font-label uppercase tracking-widest text-outline mb-2">Suggestion</div>
-                                            <p class="text-on-surface-variant leading-relaxed">{{ $issue['suggestion'] }}</p>
+                                            @foreach($issue['suggestion'] as $suggestion)
+                                            <p class="text-on-surface-variant leading-relaxed">{{ $suggestion }}</p>
+                                            @endforeach
                                         </div>
                                         @endif
                                     </div>

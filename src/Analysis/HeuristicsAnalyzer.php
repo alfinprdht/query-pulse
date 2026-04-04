@@ -118,6 +118,7 @@ class HeuristicsAnalyzer
                         'time' => $query['time'],
                         'suggestion' => 'Review filters, joins, selected columns, and indexes.',
                         'trace' => $query['trace'],
+                        'unique_id' => md5(json_encode($query['sql'] . $query['trace'])),
                     ];
                 }
                 if ($this->hasWildcardFetch($query['sql'])) {
@@ -138,13 +139,15 @@ class HeuristicsAnalyzer
                 $query['unique_id'] = md5(json_encode($query['sql'] . $query['trace']));
                 return $query;
             })->groupBy('unique_id')->each(function ($group) use (&$issues) {
+                $firstData = $group->first();
                 $issues[] = [
                     'type' => 'supicious_wildcard_fetch',
-                    'fingerprint' => $group->first()['sql'],
+                    'fingerprint' => $firstData['sql'],
                     'count' => count($group),
                     'time' => $group->sum('time'),
                     'suggestion' => 'Avoid using wildcard fetches in queries',
-                    'trace' => $group->first()['trace'],
+                    'trace' => $firstData['trace'],
+                    'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
                 ];
             });
 
@@ -170,13 +173,15 @@ class HeuristicsAnalyzer
                     ) {
                         $metrics->duplicateBurst++;
                         $details->duplicateBurst[] = $group->first()['sql'] ?? '';
+                        $firstData = $group->first();
                         $issues[] = [
                             'type' => 'duplicate_burst',
-                            'fingerprint' => $group->first()['sql'] ?? '',
+                            'fingerprint' => $firstData['sql'] ?? '',
                             'count' => count($group),
                             'time' => $group->sum('time'),
                             'suggestion' => 'Avoid repeated lookup queries inside loops or transformers',
-                            'trace' => $group->first()['trace'],
+                            'trace' => $firstData['trace'],
+                            'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
                         ];
                     }
                 });
@@ -191,13 +196,15 @@ class HeuristicsAnalyzer
                     ) {
                         $metrics->probableNPlus1++;
                         $details->probableNPlus1[] = $queries->first()['sql'];
+                        $firstData = $queries->first();
                         $issues[] = [
                             'type' => 'probable_n_plus_1',
-                            'fingerprint' => $queries->first()['sql'],
+                            'fingerprint' => $firstData['sql'],
                             'count' => $bindingMd5,
                             'time' => $queries->sum('time'),
                             'suggestion' => 'Use eager loading via with() on the parent query',
-                            'trace' => $queries->first()['trace'],
+                            'trace' => $firstData['trace'],
+                            'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
                         ];
                     }
                 }

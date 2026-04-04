@@ -31,8 +31,10 @@ class WebReporting extends Reporting
                 $description = 'Probable N+1 detected in ' . $count . ' queries.';
             } elseif ($type == 'supicious_wildcard_fetch') {
                 $tables = $issue->transform(function ($item) {
-                    return explode('`', $item['fingerprint'])[1];
-                })->unique();
+                    $fingerprints = explode('`', $item['fingerprint']);
+                    return count($fingerprints) > 1 ? $fingerprints[1] : null;
+                })->filter(fn($table) => $table !== null)
+                    ->unique();
 
                 if ($tables->count() < 5) {
                     $description = 'Supicious wildcard fetch detected in ' . $tables->implode(', ') . ' tables. This may cause performance issues and should be investigated.';
@@ -49,12 +51,27 @@ class WebReporting extends Reporting
             ];
         });
 
+        $issues = collect($this->analysisResult->issues)
+            ->groupBy('unique_id')->transform(function ($group) {
+                $firstData = $group->first();
+                return [
+                    'fingerprint' => $firstData['fingerprint'],
+                    'type' => $group->pluck('type')->unique()->toArray(),
+                    'count' => $group->count(),
+                    'time' => $firstData['time'],
+                    'suggestion' => $group->pluck('suggestion')->unique()->toArray(),
+                    'trace' => $firstData['trace'],
+                ];
+            })
+            ->values()
+            ->toArray();
+
         return [
             'score' => $this->analysisResult->score,
             'status' => $this->analysisResult->status,
             ...collect($this->analysisResult->metrics)->toArray(),
             'anomalies' => $anomalies,
-            'issues' => $this->analysisResult->issues,
+            'issues' => $issues,
         ];
     }
 }
