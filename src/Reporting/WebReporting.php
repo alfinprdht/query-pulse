@@ -41,6 +41,8 @@ class WebReporting extends Reporting
                 } else {
                     $description = 'Supicious wildcard fetch detected in ' . $tables->take(5)->implode(', ') . ', and more tables. This may cause performance issues and should be investigated.';
                 }
+            } else {
+                $description = 'Unknown anomaly detected in ' . $count . ' queries. Please investigate.';
             }
 
             return [
