@@ -20,6 +20,6 @@ class QueryPulseDto
         public string $queryExecutedString,
         public string $createdAt,
     ) {
-        $this->queryExecuted = json_decode($queryExecutedString, true);
+        $this->queryExecuted = json_decode($queryExecutedString, true) ?? [];
     }
 }

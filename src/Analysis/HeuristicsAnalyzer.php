@@ -79,6 +79,11 @@ class HeuristicsAnalyzer
             ->where('url', $this->url)
             ->first();
 
+        $firstQueryPulse = $this->queries->first();
+        if (empty($firstQueryPulse)) {
+            return false;
+        }
+
         /**
          * Prevent re-analyzing if the query pulse report is already up to date.
          * If the query pulse report is not empty and the updated at is greater than the created at, 
@@ -87,22 +92,29 @@ class HeuristicsAnalyzer
         if (
             !empty($queryPulseReport)
         ) {
-            if ($queryPulseReport->updated_at >= $this->queries->first()->created_at) {
-                $this->analysisResult = new AnalysisResultDto(...json_decode($queryPulseReport->analysis_result, true));
-                return true;
+            if ($queryPulseReport->updated_at >= $firstQueryPulse?->created_at) {
+
+                /**
+                 * Handle possible corrupted analysis result.
+                 */
+                $decodedAnalysisResult = json_decode($queryPulseReport->analysis_result, true);
+                if (!empty($decodedAnalysisResult)) {
+                    $this->analysisResult = new AnalysisResultDto(...$decodedAnalysisResult);
+                    return true;
+                }
             }
         }
 
         $this->averageQueryTime = round(
             $this->queries
-                ->avg('total_query_time'),
+                ->avg('total_query_time') ?? 0,
             2
         );
 
         $latestQueryPulse = new QueryPulseDto(
             $this->url,
-            $this->queries->first()->query_executed ?? '',
-            $this->queries->first()->created_at ?? '',
+            $firstQueryPulse->query_executed ?? '',
+            $firstQueryPulse->created_at ?? '',
         );
 
         $metrics = new MetricsDto();

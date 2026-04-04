@@ -399,7 +399,7 @@
                                             @if(!empty($issue['trace']))
                                             <code>{{ $issue['trace'] }}</code>
                                             @else
-                                            <code>Vendor</code>
+                                            <code>- No trace available -</code>
                                             @endif
                                         </div>
                                         <div>

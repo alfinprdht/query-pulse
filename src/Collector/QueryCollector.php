@@ -48,16 +48,24 @@ class QueryCollector
     private string $url;
 
     /**
+     * The flag to enable the stack trace.
+     * @var bool
+     */
+    private bool $isEnabledUrlStackTrace;
+
+    /**
      * Constructor for the QueryCollector class.
      * @param \Illuminate\Http\Request $request The request object.
      */
 
-
-    public function __construct(Request $request)
-    {
+    public function __construct(
+        Request $request,
+        bool $isEnabledUrlStackTrace = false
+    ) {
+        $this->request = $request;
+        $this->isEnabledUrlStackTrace = $isEnabledUrlStackTrace;
         $this->queries = [];
         $this->totalQueryTime = 0;
-        $this->request = $request;
         $this->autoGenerateReportEvery = config('query-pulse.auto_generate_report_every');
         $this->url = $this->request->method() . ' ' . $this->request->path();
     }
@@ -69,21 +77,24 @@ class QueryCollector
     public function listen()
     {
         DB::listen(function ($query) {
-            $stack = collect(
-                debug_backtrace(
-                    DEBUG_BACKTRACE_IGNORE_ARGS,
-                    $this->limitStackTraceDepth
-                )
-            )
-                ->first(function ($frame) {
-                    return isset($frame['file']) &&
-                        str_contains($frame['file'], base_path('app')) &&
-                        !str_contains($frame['file'], 'vendor');
-                });
             $trace = null;
-            if ($stack) {
-                $relativePath = str_replace(base_path() . '/', '', $stack['file']);
-                $trace = $relativePath . ':' . $stack['line'];
+            if ($this->isEnabledUrlStackTrace) {
+                $stack = collect(
+                    debug_backtrace(
+                        DEBUG_BACKTRACE_IGNORE_ARGS,
+                        $this->limitStackTraceDepth
+                    )
+                )
+                    ->skip(2)
+                    ->first(function ($frame) {
+                        return isset($frame['file']) &&
+                            str_contains($frame['file'], base_path('app')) &&
+                            !str_contains($frame['file'], 'vendor');
+                    });
+                if ($stack) {
+                    $relativePath = str_replace(base_path() . '/', '', $stack['file']);
+                    $trace = $relativePath . ':' . $stack['line'];
+                }
             }
             $time = $query->time;
             $this->queries[] = [
@@ -102,12 +113,25 @@ class QueryCollector
      */
     public function save()
     {
+        /**
+         * Update the query pulse record with the empty query executed and the updated at to now.
+         * Query_executed consume a lot of space in the database, 
+         * so we need to update it to empty string and the updated at to now.
+         */
+
         DB::table('query_pulse')
             ->where('url', $this->url)
+            ->limit(self::KEEP_LATEST_PER_URL)
+            ->orderByDesc('id')
             ->update([
-                'query_executed' => ''
+                'query_executed' => '',
+                'updated_at' => now(),
             ]);
 
+        /**
+         * Because, we don't snapshot the queries executed and we just record total query time
+         * On the similar URL of KEEP_LATEST_PER_URL, only one latest record will filled with the queries executed.
+         */
         DB::table('query_pulse')->insert([
             'url' => $this->url,
             'query_executed' => json_encode($this->queries),

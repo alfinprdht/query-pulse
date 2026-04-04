@@ -21,12 +21,17 @@ class QueryPulseMiddleware
     {
         if (
             config('query-pulse.enabled') === false
-            || $request->is(config('query-pulse.ignored_urls'))
+            || $request->is(...config('query-pulse.ignored_urls'))
         ) {
             return $next($request);
         }
 
-        $collector = new QueryCollector($request);
+        $isEnabledUrlStackTrace = $request->is(...config('query-pulse.enabled_url_stack_trace'));
+
+        $collector = new QueryCollector(
+            $request,
+            $isEnabledUrlStackTrace
+        );
         $collector->listen();
 
         $response = $next($request);

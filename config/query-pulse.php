@@ -36,4 +36,13 @@ return [
      * Auto Generate Report every n request
      */
     'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 100),
+
+    /**
+     * Set speficif url stack trace to be enabled
+     * Be aware of performance impact if you enable this for too many urls
+     * @var array<string>
+     */
+    'enabled_url_stack_trace' => [
+        '*',
+    ]
 ];

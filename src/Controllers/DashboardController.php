@@ -40,6 +40,9 @@ class DashboardController extends Controller
     public function report($reportId)
     {
         $fullUrl = Helpers::getUrlFromReportId($reportId);
+        if (empty($fullUrl)) {
+            return abort(404, 'Endpoint not found');
+        }
 
         $analyzer = new HeuristicsAnalyzer($fullUrl);
         $analyzer->analyze();
@@ -55,12 +58,17 @@ class DashboardController extends Controller
 
         $maxTotalQueryTime = $queryPulse->max('total_query_time');
 
+
         $transformedQueryPulse = (clone $queryPulse)
             ->transform(function ($item) use ($maxTotalQueryTime) {
+                $percentage = 0;
+                if ($maxTotalQueryTime > 0) {
+                    $percentage = $item->total_query_time / $maxTotalQueryTime * 100;
+                }
                 return [
                     'id' => $item->id,
                     'total_query_time' => $item->total_query_time,
-                    'percentage' => $item->total_query_time / $maxTotalQueryTime * 100,
+                    'percentage' => $percentage,
                     'cross_threshold' => $item->total_query_time > Thresholds::getTotalQueryTime(),
                 ];
             })->sortBy('id');

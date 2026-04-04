@@ -16,7 +16,6 @@ class ScoreCalculator
 
     protected const SCORE_WATCH = 89;
 
-    protected const SCORE_HEALTHY = 90;
 
     /**
      * Constructor for the ScoreCalculator class.
@@ -67,7 +66,7 @@ class ScoreCalculator
      * Get the status of the query.
      * @return string The status of the query.
      */
-    public function getStatus()
+    public function getStatus(): string
     {
         if ($this->score <= self::SCORE_CRITICAL) {
             return 'CRITICAL';
