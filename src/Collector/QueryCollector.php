@@ -42,6 +42,12 @@ class QueryCollector
     private int $limitStackTraceDepth = 20;
 
     /**
+     * The URL of the request.
+     * @var string
+     */
+    private string $url;
+
+    /**
      * Constructor for the QueryCollector class.
      * @param \Illuminate\Http\Request $request The request object.
      */
@@ -53,6 +59,7 @@ class QueryCollector
         $this->totalQueryTime = 0;
         $this->request = $request;
         $this->autoGenerateReportEvery = config('query-pulse.auto_generate_report_every');
+        $this->url = $this->request->method() . ' ' . $this->request->path();
     }
 
     /**
@@ -95,16 +102,14 @@ class QueryCollector
      */
     public function save()
     {
-        $url = $this->request->method() . ' ' . $this->request->path();
-
         DB::table('query_pulse')
-            ->where('url', $url)
+            ->where('url', $this->url)
             ->update([
                 'query_executed' => ''
             ]);
 
         DB::table('query_pulse')->insert([
-            'url' => $url,
+            'url' => $this->url,
             'query_executed' => json_encode($this->queries),
             'total_query_time' => $this->totalQueryTime,
             'created_at' => now(),
@@ -112,7 +117,7 @@ class QueryCollector
         ]);
 
         $idsToDelete = DB::table('query_pulse')
-            ->where('url', '=', $url)
+            ->where('url', '=', $this->url)
             ->orderByDesc('id')
             ->pluck('id')
             ->skip(self::KEEP_LATEST_PER_URL);
@@ -123,7 +128,9 @@ class QueryCollector
                 ->delete();
         }
 
-        $this->handleGenerateReport($url);
+        $this->handleGenerateReport(
+            $this->url
+        );
     }
 
     /**
@@ -136,7 +143,7 @@ class QueryCollector
         if ($this->autoGenerateReportEvery > 0) {
 
             $lastQueryPulseReport = DB::table('query_pulse_report')
-                ->where('url', $this->request->method() . ' ' . $this->request->path())
+                ->where('url', $this->url)
                 ->orderByDesc('id')
                 ->first();
 
@@ -147,7 +154,7 @@ class QueryCollector
             }
 
             $queryPulse = DB::table('query_pulse')
-                ->where('url', $this->request->method() . ' ' . $this->request->path())
+                ->where('url', $this->url)
                 ->orderByDesc('id')
                 ->where('created_at', '>', $lastQueryPulseReport->updated_at)
                 ->get();

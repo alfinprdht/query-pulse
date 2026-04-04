@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Alfinprdht\QueryPulse\Support\Thresholds;
 use Alfinprdht\QueryPulse\Analysis\ScoreCalculator;
+use Alfinprdht\QueryPulse\DTO\AnalysisResult\IssuesDto;
 
 class HeuristicsAnalyzer
 {
@@ -114,15 +115,12 @@ class HeuristicsAnalyzer
             ) {
                 $metrics->slowQueryTime += 1;
                 $details->slowQueryTime[] = $query['sql'];
-                $issues[] = [
-                    'type' => 'slow_query',
-                    'fingerprint' => $query['sql'],
-                    'count' => 1,
-                    'time' => $query['time'],
-                    'suggestion' => 'Review filters, joins, selected columns, and indexes.',
-                    'trace' => $query['trace'],
-                    'unique_id' => md5(json_encode($query['sql'] . $query['trace'])),
-                ];
+                $issues[] = new IssuesDto(
+                    type: 'slow_query',
+                    count: 1,
+                    time: $query['time'],
+                    data: $query,
+                );
             }
             if ($this->hasWildcardFetch($query['sql'])) {
                 $metrics->suspiciousWildcardFetch += 1;
@@ -139,19 +137,16 @@ class HeuristicsAnalyzer
         $suspiciousWildcardFetchData->filter(function ($query) {
             return $this->hasWildcardFetch($query['sql']);
         })->transform(function ($query) {
-            $query['unique_id'] = md5(json_encode($query['sql'] . $query['trace']));
+            $query['unique_id'] = md5($query['sql'] . $query['trace']);
             return $query;
         })->groupBy('unique_id')->each(function ($group) use (&$issues) {
             $firstData = $group->first();
-            $issues[] = [
-                'type' => 'suspicious_wildcard_fetch',
-                'fingerprint' => $firstData['sql'],
-                'count' => count($group),
-                'time' => $group->sum('time'),
-                'suggestion' => 'Avoid using wildcard fetches in queries',
-                'trace' => $firstData['trace'],
-                'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
-            ];
+            $issues[] = new IssuesDto(
+                type: 'suspicious_wildcard_fetch',
+                count: count($group),
+                time: $group->sum('time'),
+                data: $firstData,
+            );
         });
 
         $completeQuery = [];
@@ -161,8 +156,8 @@ class HeuristicsAnalyzer
                 'sql_with_bindings' => $sqlWithBindings,
                 'sql' => $query['sql'],
                 'time' => $query['time'],
-                'unique_id_bindings' => md5(json_encode($sqlWithBindings . $query['trace'])),
-                'unique_id_fingerprint' => md5(json_encode($query['sql'] . $query['trace'])),
+                'unique_id_bindings' => md5($sqlWithBindings . $query['trace']),
+                'unique_id_fingerprint' => md5($query['sql'] . $query['trace']),
                 'trace' => $query['trace'],
                 'bindings' => $query['bindings'],
                 'bindings_md5' => md5(json_encode($query['bindings'])),
@@ -177,15 +172,12 @@ class HeuristicsAnalyzer
                     $metrics->duplicateBurst++;
                     $details->duplicateBurst[] = $group->first()['sql'] ?? '';
                     $firstData = $group->first();
-                    $issues[] = [
-                        'type' => 'duplicate_burst',
-                        'fingerprint' => $firstData['sql'] ?? '',
-                        'count' => count($group),
-                        'time' => $group->sum('time'),
-                        'suggestion' => 'Avoid repeated lookup queries inside loops or transformers',
-                        'trace' => $firstData['trace'],
-                        'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
-                    ];
+                    $issues[] = new IssuesDto(
+                        type: 'duplicate_burst',
+                        count: count($group),
+                        time: $group->sum('time'),
+                        data: $firstData,
+                    );
                 }
             });
 
@@ -193,22 +185,19 @@ class HeuristicsAnalyzer
             collect($completeQuery)->groupBy('unique_id_fingerprint') as $queries
         ) {
             if (count($queries) > 1) {
-                $bindingMd5 = count($queries->groupBy('bindings_md5'));
+                $countBindingMd5 = count($queries->groupBy('bindings_md5'));
                 if (
-                    $bindingMd5 > Thresholds::getProbableNPlus1()
+                    $countBindingMd5 > Thresholds::getProbableNPlus1()
                 ) {
                     $metrics->probableNPlus1++;
                     $details->probableNPlus1[] = $queries->first()['sql'];
                     $firstData = $queries->first();
-                    $issues[] = [
-                        'type' => 'probable_n_plus_1',
-                        'fingerprint' => $firstData['sql'],
-                        'count' => $bindingMd5,
-                        'time' => $queries->sum('time'),
-                        'suggestion' => 'Use eager loading via with() on the parent query',
-                        'trace' => $firstData['trace'],
-                        'unique_id' => md5(json_encode($firstData['sql'] . $firstData['trace'])),
-                    ];
+                    $issues[] = new IssuesDto(
+                        type: 'probable_n_plus_1',
+                        count: $countBindingMd5,
+                        time: $queries->sum('time'),
+                        data: $firstData,
+                    );
                 }
             }
         }

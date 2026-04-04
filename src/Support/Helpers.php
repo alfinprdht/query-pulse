@@ -64,4 +64,18 @@ class Helpers
 
         return false;
     }
+
+    public static function suggestion(string $type): string {
+        switch ($type) {
+            case 'slow_query':
+                return 'Review filters, joins, selected columns, and indexes.';
+            case 'duplicate_burst':
+                return 'Avoid repeated lookup queries inside loops or transformers.';
+            case 'probable_n_plus_1':
+                return 'Use eager loading via with() on the parent query.';
+            case 'suspicious_wildcard_fetch':
+                return 'Avoid using wildcard fetches in queries.';
+        }
+        return '';
+    }
 }

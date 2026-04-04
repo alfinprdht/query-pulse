@@ -16,13 +16,8 @@ class DashboardController extends Controller
     {
         $endpoints = (new QueryList())->get();
 
-        $criticalCount = $endpoints->filter(function ($endpoint) {
-            return ($endpoint['status'] ?? '') === 'CRITICAL';
-        })->count();
-
-        $poorCount = $endpoints->filter(function ($endpoint) {
-            return ($endpoint['status'] ?? '') === 'POOR';
-        })->count();
+        $criticalCount = $endpoints->where('status', 'CRITICAL')->count();
+        $poorCount = $endpoints->where('status', 'POOR')->count();
 
         $highest = $endpoints
             ->sortByDesc(function ($endpoint) {

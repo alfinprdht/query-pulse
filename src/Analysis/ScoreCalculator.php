@@ -10,6 +10,14 @@ class ScoreCalculator
 
     protected int $score = 100;
 
+    protected const SCORE_CRITICAL = 39;
+
+    protected const SCORE_POOR = 69;
+
+    protected const SCORE_WATCH = 89;
+
+    protected const SCORE_HEALTHY = 90;
+
     /**
      * Constructor for the ScoreCalculator class.
      * @param MetricsDto $metrics The metrics of the query.
@@ -61,11 +69,11 @@ class ScoreCalculator
      */
     public function getStatus()
     {
-        if ($this->score <= 39) {
+        if ($this->score <= self::SCORE_CRITICAL) {
             return 'CRITICAL';
-        } elseif ($this->score <= 69) {
+        } elseif ($this->score <= self::SCORE_POOR) {
             return 'POOR';
-        } elseif ($this->score <= 89) {
+        } elseif ($this->score <= self::SCORE_WATCH) {
             return 'WATCH';
         }
         return 'HEALTHY';

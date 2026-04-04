@@ -4,6 +4,7 @@ namespace Alfinprdht\QueryPulse\DTO;
 
 use Alfinprdht\QueryPulse\DTO\AnalysisResult\MetricsDto;
 use Alfinprdht\QueryPulse\DTO\AnalysisResult\DetailDto;
+use Alfinprdht\QueryPulse\DTO\AnalysisResult\IssuesDto;
 
 /**
  * The analysis result of the query.
@@ -19,11 +20,16 @@ class AnalysisResultDto
         public array $issues = [],
         public string $lastFetchedAt = '',
     ) {
-        if(!empty($metrics) && is_array($metrics)) {
+        if (!empty($metrics) && is_array($metrics)) {
             $this->metrics = new MetricsDto(...$metrics);
         }
-        if(!empty($details) && is_array($details)) {
+        if (!empty($details) && is_array($details)) {
             $this->details = new DetailDto(...$details);
+        }
+        if (!empty($issues) && is_array($issues)) {
+            $this->issues = array_map(function ($issue) {
+                return new IssuesDto(...$issue);
+            }, $issues);
         }
     }
 }
