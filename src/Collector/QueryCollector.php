@@ -36,9 +36,16 @@ class QueryCollector
     private int $autoGenerateReportEvery;
 
     /**
+     * The limit of the stack trace depth.
+     * @var int
+     */
+    private int $limitStackTraceDepth = 20;
+
+    /**
      * Constructor for the QueryCollector class.
      * @param \Illuminate\Http\Request $request The request object.
      */
+
 
     public function __construct(Request $request)
     {
@@ -55,7 +62,12 @@ class QueryCollector
     public function listen()
     {
         DB::listen(function ($query) {
-            $stack = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))
+            $stack = collect(
+                debug_backtrace(
+                    DEBUG_BACKTRACE_IGNORE_ARGS,
+                    $this->limitStackTraceDepth
+                )
+            )
                 ->first(function ($frame) {
                     return isset($frame['file']) &&
                         str_contains($frame['file'], base_path('app')) &&
