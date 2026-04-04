@@ -65,7 +65,13 @@ class Helpers
         return false;
     }
 
-    public static function suggestion(string $type): string {
+    /**
+     * Get the suggestion for the issue.
+     * @param string $type
+     * @return string
+     */
+    public static function getSuggestion(string $type): string
+    {
         switch ($type) {
             case 'slow_query':
                 return 'Review filters, joins, selected columns, and indexes.';

@@ -12,7 +12,7 @@ class WebReporting extends Reporting
         'slow_query' => 'Slow Query',
         'duplicate_burst' => 'Duplicate Burst',
         'probable_n_plus_1' => 'Probable N+1',
-        'suspicious_wildcard_fetch' => 'suspicious Wildcard Fetch',
+        'suspicious_wildcard_fetch' => 'Suspicious Wildcard Fetch',
     ];
 
     /**
@@ -43,9 +43,9 @@ class WebReporting extends Reporting
                 })->filter(fn($table) => $table !== null)
                     ->unique();
                 if ($tables->count() < 5) {
-                    $description = 'suspicious wildcard fetch detected in ' . $tables->implode(', ') . ' tables. This may cause performance issues and should be investigated.';
+                    $description = 'Suspicious wildcard fetch detected in ' . $tables->implode(', ') . ' tables. This may cause performance issues and should be investigated.';
                 } else {
-                    $description = 'suspicious wildcard fetch detected in ' . $tables->take(5)->implode(', ') . ', and more tables. This may cause performance issues and should be investigated.';
+                    $description = 'Suspicious wildcard fetch detected in ' . $tables->take(5)->implode(', ') . ', and more tables. This may cause performance issues and should be investigated.';
                 }
                 break;
             default:
@@ -54,7 +54,7 @@ class WebReporting extends Reporting
         }
 
         return [
-            'title' => self::ANOMALY_TYPES[$type],
+            'title' => self::ANOMALY_TYPES[$type] ?? 'Unknown',
             'type' => $type,
             'count' => $count,
             'description' => $description,

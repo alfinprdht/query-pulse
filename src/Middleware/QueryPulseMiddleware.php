@@ -21,7 +21,7 @@ class QueryPulseMiddleware
     {
         if (
             config('query-pulse.enabled') === false
-            || $request->is(config('query-pulse.ignored_urls'))
+            || $request->is(...config('query-pulse.ignored_urls'))
         ) {
             return $next($request);
         }

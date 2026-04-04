@@ -16,11 +16,11 @@ class IssuesDto
         public string | null $trace = null,
         public string | null $suggestion = null,
     ) {
-        if(!empty($data) && is_array($data)) {
+        if (!empty($data) && is_array($data)) {
             $this->fingerprint = $data['sql'];
             $this->trace = $data['trace'];
             $this->unique_id = md5($data['sql'] . $data['trace']);
-            $this->suggestion = Helpers::suggestion($this->type);
+            $this->suggestion = Helpers::getSuggestion($this->type);
         }
     }
 }
