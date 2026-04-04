@@ -58,12 +58,14 @@ class DashboardController extends Controller
 
         $queryPulse = $analyzer->getQueries();
 
+        $maxTotalQueryTime = $queryPulse->max('total_query_time');
+
         $transformedQueryPulse = (clone $queryPulse)
-            ->transform(function ($item) use ($queryPulse) {
+            ->transform(function ($item) use ($maxTotalQueryTime) {
                 return [
                     'id' => $item->id,
                     'total_query_time' => $item->total_query_time,
-                    'percentage' => $item->total_query_time / $queryPulse->max('total_query_time') * 100,
+                    'percentage' => $item->total_query_time / $maxTotalQueryTime * 100,
                     'cross_treshold' => $item->total_query_time > Thresholds::getTotalQueryTime(),
                 ];
             })->sortBy('id');
