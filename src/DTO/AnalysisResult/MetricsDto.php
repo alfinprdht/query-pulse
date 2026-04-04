@@ -10,7 +10,7 @@ class MetricsDto
 {
     public function __construct(
         public int $slowQueryTime = 0,
-        public int $supiciousWildcardFetch = 0,
+        public int $suspiciousWildcardFetch = 0,
         public int $duplicateBurst = 0,
         public int $probableNPlus1 = 0,
         public float $totalQueryTime = 0,

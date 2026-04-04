@@ -28,8 +28,8 @@ class ScoreCalculator
         if ($this->metrics->slowQueryTime > 0) {
             $this->score -= 10 * $this->metrics->slowQueryTime;
         }
-        if ($this->metrics->supiciousWildcardFetch > 0) {
-            $this->score -= $this->metrics->supiciousWildcardFetch / 5;
+        if ($this->metrics->suspiciousWildcardFetch > 0) {
+            $this->score -= $this->metrics->suspiciousWildcardFetch / 5;
         }
         if ($this->metrics->duplicateBurst > 0) {
             $this->score -= 10;

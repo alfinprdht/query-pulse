@@ -18,7 +18,7 @@ class LogReporting extends Reporting
             ['Slow Query', $metrics->slowQueryTime],
             ['Duplicate Burst', $metrics->duplicateBurst],
             ['Probable N+1', $metrics->probableNPlus1],
-            ['Supicious Wildcard Fetch', $metrics->supiciousWildcardFetch],
+            ['suspicious Wildcard Fetch', $metrics->suspiciousWildcardFetch],
             ['Total Query Time', $metrics->totalQueryTime . ' ms'],
             ['Total Query Count', $metrics->totalQueryCount],
         ];

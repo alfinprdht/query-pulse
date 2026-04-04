@@ -11,13 +11,13 @@ class DetailDto
     /**
      * Constructor for the DetailDto class.
      * @param array $slowQueryTime The slow query time.
-     * @param array $supiciousWildcardFetch The supicious wildcard fetch.
+     * @param array $suspiciousWildcardFetch The suspicious wildcard fetch.
      * @param array $duplicateBurst The duplicate burst.
      * @param array $probableNPlus1 The probable N+1.
      */
     public function __construct(
         public array $slowQueryTime = [],
-        public array $supiciousWildcardFetch = [],
+        public array $suspiciousWildcardFetch = [],
         public array $duplicateBurst = [],
         public array $probableNPlus1 = [],
     ) {}

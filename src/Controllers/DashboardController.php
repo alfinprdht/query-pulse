@@ -66,7 +66,7 @@ class DashboardController extends Controller
                     'id' => $item->id,
                     'total_query_time' => $item->total_query_time,
                     'percentage' => $item->total_query_time / $maxTotalQueryTime * 100,
-                    'cross_treshold' => $item->total_query_time > Thresholds::getTotalQueryTime(),
+                    'cross_threshold' => $item->total_query_time > Thresholds::getTotalQueryTime(),
                 ];
             })->sortBy('id');
 

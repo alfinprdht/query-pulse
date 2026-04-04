@@ -11,7 +11,7 @@ class WebReporting extends Reporting
         'slow_query' => 'Slow Query',
         'duplicate_burst' => 'Duplicate Burst',
         'probable_n_plus_1' => 'Probable N+1',
-        'supicious_wildcard_fetch' => 'Supicious Wildcard Fetch',
+        'suspicious_wildcard_fetch' => 'suspicious Wildcard Fetch',
     ];
     public function result()
     {
@@ -29,7 +29,7 @@ class WebReporting extends Reporting
             } elseif ($type == 'probable_n_plus_1') {
 
                 $description = 'Probable N+1 detected in ' . $count . ' queries.';
-            } elseif ($type == 'supicious_wildcard_fetch') {
+            } elseif ($type == 'suspicious_wildcard_fetch') {
                 $tables = $issue->transform(function ($item) {
                     $fingerprints = explode('`', $item['fingerprint']);
                     return count($fingerprints) > 1 ? $fingerprints[1] : null;
@@ -37,9 +37,9 @@ class WebReporting extends Reporting
                     ->unique();
 
                 if ($tables->count() < 5) {
-                    $description = 'Supicious wildcard fetch detected in ' . $tables->implode(', ') . ' tables. This may cause performance issues and should be investigated.';
+                    $description = 'suspicious wildcard fetch detected in ' . $tables->implode(', ') . ' tables. This may cause performance issues and should be investigated.';
                 } else {
-                    $description = 'Supicious wildcard fetch detected in ' . $tables->take(5)->implode(', ') . ', and more tables. This may cause performance issues and should be investigated.';
+                    $description = 'suspicious wildcard fetch detected in ' . $tables->take(5)->implode(', ') . ', and more tables. This may cause performance issues and should be investigated.';
                 }
             } else {
                 $description = 'Unknown anomaly detected in ' . $count . ' queries. Please investigate.';

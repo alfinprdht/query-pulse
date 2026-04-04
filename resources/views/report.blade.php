@@ -253,7 +253,7 @@
                     <div class="mt-8 h-24 w-full opacity-30">
                         <div class="flex items-end h-full space-x-1">
                             @foreach($transformedQueryPulse as $query)
-                            <div class="{{ $query['cross_treshold'] ? 'bg-error' : 'bg-primary-container' }} flex-1" style="height: {{ $query['percentage'] }}%">
+                            <div class="{{ $query['cross_threshold'] ? 'bg-error' : 'bg-primary-container' }} flex-1" style="height: {{ $query['percentage'] }}%">
                                 <div class="text-white text-xs font-label tracking-widest mt-[-18px]">{{ $query['total_query_time'] }}ms</div>
                             </div>
                             @endforeach
@@ -280,15 +280,15 @@
                     <div class="bg-surface-container-lowest p-6 flex flex-col justify-between group hover:bg-surface-container-low transition-all border-b-2 border-tertiary/20">
                         <div class="flex justify-between items-start">
                             <span class="text-outline text-[10px] font-label uppercase tracking-widest mb-1">Wildcard Fetches</span>
-                            @if($result['supiciousWildcardFetch'] > 0)
+                            @if($result['suspiciousWildcardFetch'] > 0)
                             <span class="material-symbols-outlined text-tertiary animate-pulse" data-icon="warning">warning</span>
                             @else
                             <span class="material-symbols-outlined text-tertiary animate-pulse" data-icon="check_circle">check_circle</span>
                             @endif
                         </div>
                         <div class="flex items-baseline space-x-3">
-                            <span class="text-3xl font-headline font-bold text-tertiary">{{ $result['supiciousWildcardFetch'] }}</span>
-                            @if($result['supiciousWildcardFetch'] > 0)
+                            <span class="text-3xl font-headline font-bold text-tertiary">{{ $result['suspiciousWildcardFetch'] }}</span>
+                            @if($result['suspiciousWildcardFetch'] > 0)
                             <span class="text-sm font-label text-tertiary/60 uppercase tracking-tighter">Inefficient</span>
                             @endif
                         </div>

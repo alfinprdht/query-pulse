@@ -125,18 +125,18 @@ class HeuristicsAnalyzer
                 ];
             }
             if ($this->hasWildcardFetch($query['sql'])) {
-                $metrics->supiciousWildcardFetch += 1;
-                $details->supiciousWildcardFetch[] = $query['sql'];
+                $metrics->suspiciousWildcardFetch += 1;
+                $details->suspiciousWildcardFetch[] = $query['sql'];
             }
             $metrics->totalQueryTime += $query['time'];
             $metrics->totalQueryCount += 1;
         }
 
-        $supiciousWildcardFetchData = collect(
+        $suspiciousWildcardFetchData = collect(
             $latestQueryPulse->queryExecuted
         );
 
-        $supiciousWildcardFetchData->filter(function ($query) {
+        $suspiciousWildcardFetchData->filter(function ($query) {
             return $this->hasWildcardFetch($query['sql']);
         })->transform(function ($query) {
             $query['unique_id'] = md5(json_encode($query['sql'] . $query['trace']));
@@ -144,7 +144,7 @@ class HeuristicsAnalyzer
         })->groupBy('unique_id')->each(function ($group) use (&$issues) {
             $firstData = $group->first();
             $issues[] = [
-                'type' => 'supicious_wildcard_fetch',
+                'type' => 'suspicious_wildcard_fetch',
                 'fingerprint' => $firstData['sql'],
                 'count' => count($group),
                 'time' => $group->sum('time'),
