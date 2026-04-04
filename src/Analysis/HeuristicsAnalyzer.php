@@ -53,7 +53,8 @@ class HeuristicsAnalyzer
      */
     protected function hasWildcardFetch(string $sql): bool
     {
-        return strpos($sql, '*') !== false;
+        $cleanSql = preg_replace('/(--.*)|(\/\*[\s\S]*?\*\/)/', '', $sql);
+        return (bool) preg_match('/select\s+(\*|(\w+\.\*))/i', $cleanSql);
     }
 
     /**
