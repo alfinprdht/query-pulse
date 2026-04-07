@@ -55,5 +55,13 @@ return [
      */
     'enabled_url_stack_trace' => [
         // 'dashboard/*',
-    ]
+    ],
+
+    /**
+     * Allowed VPN IPs,
+     * Separated by comma
+     * Example: 10.8.0.1,10.8.0.2
+     * @var string
+     */
+    'allowed_vpn_ips' => env('QUERY_PULSE_ALLOWED_VPN_IPS', ''),
 ];

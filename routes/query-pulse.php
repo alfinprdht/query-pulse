@@ -3,13 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use Alfinprdht\QueryPulse\Controllers\DashboardController;
 use Alfinprdht\QueryPulse\Controllers\AssetController;
+// use Alfinprdht\QueryPulse\Middleware\CheckVpnConnectionQueryPulseMiddleware;
 use Alfinprdht\QueryPulse\Middleware\QueryPulseDashboardMiddleware;
 
 Route::middleware([
     'web',
     'auth',
     'throttle:60,1',
-    QueryPulseDashboardMiddleware::class
+    QueryPulseDashboardMiddleware::class,
+    // CheckVpnConnectionQueryPulseMiddleware::class,
 ])
     ->prefix('query-pulse')
     ->name('query-pulse.')
