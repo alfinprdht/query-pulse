@@ -40,6 +40,7 @@ return [
         'query-pulse',
         'query-pulse/*',
         '.well-known/*',
+        'vendor/*'
     ],
 
     /**
