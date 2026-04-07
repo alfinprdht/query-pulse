@@ -154,7 +154,7 @@ class HeuristicsAnalyzer
         $completeQuery = [];
         foreach ($latestQueryPulse->queryExecuted as $query) {
             $completeQuery[] = array_merge($query, [
-                'unique_id_bindings' => md5($query['sql'] . $query['bindings_encrypted'] . $query['trace']),
+                'unique_id_bindings' => md5($query['sql'] . $query['bindings_hashed'] . $query['trace']),
                 'unique_id_fingerprint' => md5($query['sql'] . $query['trace']),
             ]);
         }
@@ -180,7 +180,7 @@ class HeuristicsAnalyzer
             collect($completeQuery)->groupBy('unique_id_fingerprint') as $queries
         ) {
             if (count($queries) > 1) {
-                $countBindingMd5 = count($queries->groupBy('bindings_encrypted'));
+                $countBindingMd5 = count($queries->groupBy('bindings_hashed'));
                 if (
                     $countBindingMd5 > Thresholds::getProbableNPlus1()
                 ) {

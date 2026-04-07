@@ -99,7 +99,7 @@ class QueryCollector
             $time = $query->time;
             $this->queries[] = [
                 'sql' => $query->sql,
-                'bindings_encrypted' => md5(json_encode($query->bindings)),
+                'bindings_hashed' => md5(json_encode($query->bindings)),
                 'time' => $time,
                 'trace' => $trace,
             ];
