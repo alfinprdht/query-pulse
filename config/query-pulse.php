@@ -54,6 +54,6 @@ return [
      * @var array<string>
      */
     'enabled_url_stack_trace' => [
-        '*',
+        // 'dashboard/*',
     ]
 ];
