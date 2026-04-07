@@ -2,8 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use Alfinprdht\QueryPulse\Controllers\DashboardController;
+use Alfinprdht\QueryPulse\Middleware\QueryPulseDashboardMiddleware;
 
-Route::middleware(['web', 'auth'])
+Route::middleware(['web', QueryPulseDashboardMiddleware::class])
     ->prefix('query-pulse')
     ->name('query-pulse.')
     ->group(function () {

@@ -6,7 +6,17 @@ return [
     | Enable query pulse
     |--------------------------------------------------------------------------
     */
-    'enabled' => env('QUERY_PULSE_ENABLED', true),
+    'enabled' => env('QUERY_PULSE_ENABLED', false),
+
+    /**
+     * Basic auth credentials for the dashboard.
+     * @var array<string>
+     * @return array<string>
+     */
+    'auth' => [
+        'username' => env('QUERY_PULSE_AUTH_USERNAME', ''),
+        'password' => env('QUERY_PULSE_AUTH_PASSWORD', ''),
+    ],
 
     /*
     |--------------------------------------------------------------------------
