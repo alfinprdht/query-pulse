@@ -59,16 +59,6 @@ class HeuristicsAnalyzer
     }
 
     /**
-     * Replace the bindings in the query with the actual values.
-     * @param array $query
-     * @return string The query with the bindings replaced.
-     */
-    protected function queryWithBindings(array $query): string
-    {
-        return Str::replaceArray('?', $query['bindings'], $query['sql']);
-    }
-
-    /**
      * Analyze the queries and set the analysis result.
      */
     public function analyze(): bool
@@ -163,17 +153,10 @@ class HeuristicsAnalyzer
 
         $completeQuery = [];
         foreach ($latestQueryPulse->queryExecuted as $query) {
-            $sqlWithBindings = Str::replaceArray('?', $query['bindings'], $query['sql']);
-            $completeQuery[] = [
-                'sql_with_bindings' => $sqlWithBindings,
-                'sql' => $query['sql'],
-                'time' => $query['time'],
-                'unique_id_bindings' => md5($sqlWithBindings . $query['trace']),
+            $completeQuery[] = array_merge($query, [
+                'unique_id_bindings' => md5($query['sql'] . $query['bindings_encrypted'] . $query['trace']),
                 'unique_id_fingerprint' => md5($query['sql'] . $query['trace']),
-                'trace' => $query['trace'],
-                'bindings' => $query['bindings'],
-                'bindings_md5' => md5(json_encode($query['bindings'])),
-            ];
+            ]);
         }
 
         collect($completeQuery)->groupBy('unique_id_bindings')
@@ -197,7 +180,7 @@ class HeuristicsAnalyzer
             collect($completeQuery)->groupBy('unique_id_fingerprint') as $queries
         ) {
             if (count($queries) > 1) {
-                $countBindingMd5 = count($queries->groupBy('bindings_md5'));
+                $countBindingMd5 = count($queries->groupBy('bindings_encrypted'));
                 if (
                     $countBindingMd5 > Thresholds::getProbableNPlus1()
                 ) {

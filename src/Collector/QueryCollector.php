@@ -99,7 +99,7 @@ class QueryCollector
             $time = $query->time;
             $this->queries[] = [
                 'sql' => $query->sql,
-                'bindings' => $query->bindings,
+                'bindings_encrypted' => md5(json_encode($query->bindings)),
                 'time' => $time,
                 'trace' => $trace,
             ];
@@ -113,48 +113,58 @@ class QueryCollector
      */
     public function save()
     {
-        /**
-         * Update the query pulse record with the empty query executed and the updated at to now.
-         * Query_executed consume a lot of space in the database, 
-         * so we need to update it to empty string and the updated at to now.
-         */
+        DB::beginTransaction();
+        try {
 
-        DB::table('query_pulse')
-            ->where('url', $this->url)
-            ->limit(self::KEEP_LATEST_PER_URL)
-            ->orderByDesc('id')
-            ->update([
-                'query_executed' => '',
+            /**
+             * Update the query pulse record with the empty query executed and the updated at to now.
+             * Query_executed consume a lot of space in the database, 
+             * so we need to update it to empty string and the updated at to now.
+             */
+
+            DB::table('query_pulse')
+                ->where('url', $this->url)
+                ->limit(self::KEEP_LATEST_PER_URL)
+                ->orderByDesc('id')
+                ->update([
+                    'query_executed' => '',
+                    'updated_at' => now(),
+                ]);
+
+            /**
+             * Because, we don't snapshot the queries executed and we just record total query time
+             * On the similar URL of KEEP_LATEST_PER_URL, only one latest record will filled with the queries executed.
+             */
+            DB::table('query_pulse')->insert([
+                'url' => $this->url,
+                'query_executed' => json_encode($this->queries),
+                'total_query_time' => $this->totalQueryTime,
+                'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-        /**
-         * Because, we don't snapshot the queries executed and we just record total query time
-         * On the similar URL of KEEP_LATEST_PER_URL, only one latest record will filled with the queries executed.
-         */
-        DB::table('query_pulse')->insert([
-            'url' => $this->url,
-            'query_executed' => json_encode($this->queries),
-            'total_query_time' => $this->totalQueryTime,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+            $idsToDelete = DB::table('query_pulse')
+                ->where('url', '=', $this->url)
+                ->orderByDesc('id')
+                ->pluck('id')
+                ->skip(self::KEEP_LATEST_PER_URL);
 
-        $idsToDelete = DB::table('query_pulse')
-            ->where('url', '=', $this->url)
-            ->orderByDesc('id')
-            ->pluck('id')
-            ->skip(self::KEEP_LATEST_PER_URL);
+            if ($idsToDelete->isNotEmpty()) {
+                DB::table('query_pulse')
+                    ->whereIn('id', $idsToDelete)
+                    ->delete();
+            }
 
-        if ($idsToDelete->isNotEmpty()) {
-            DB::table('query_pulse')
-                ->whereIn('id', $idsToDelete)
-                ->delete();
+            $this->handleGenerateReport(
+                $this->url
+            );
+
+            DB::commit();
+        } catch (\Throwable $th) {
+
+            DB::rollBack();
+            throw $th;
         }
-
-        $this->handleGenerateReport(
-            $this->url
-        );
     }
 
     /**
