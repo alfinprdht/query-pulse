@@ -5,7 +5,12 @@ use Alfinprdht\QueryPulse\Controllers\DashboardController;
 use Alfinprdht\QueryPulse\Controllers\AssetController;
 use Alfinprdht\QueryPulse\Middleware\QueryPulseDashboardMiddleware;
 
-Route::middleware(['web', QueryPulseDashboardMiddleware::class])
+Route::middleware([
+    'web',
+    'auth',
+    'throttle:60,1',
+    QueryPulseDashboardMiddleware::class
+])
     ->prefix('query-pulse')
     ->name('query-pulse.')
     ->group(function () {
