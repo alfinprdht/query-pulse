@@ -5,10 +5,9 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Query Pulse Beta | Dashboard</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <link href="{{ route('query-pulse.assets', ['path' => 'css/google-fonts.css']) }}" rel="stylesheet" />
+    <link href="{{ route('query-pulse.assets', ['path' => 'css/material-symbols-outlined.css']) }}" rel="stylesheet" />
+    <script src="{{ route('query-pulse.assets', ['path' => 'tailwindcss.js']) }}"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
