@@ -35,7 +35,7 @@ return [
     /**
      * Auto Generate Report every n request
      */
-    'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 100),
+    'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 10),
 
     /**
      * Set speficif url stack trace to be enabled
