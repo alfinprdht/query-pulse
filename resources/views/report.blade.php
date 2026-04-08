@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Query Pulse Beta | Query Pulse Inspector</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <link href="{{ route('query-pulse.assets', ['path' => 'css/google-fonts.css']) }}" rel="stylesheet" />
+    <link href="{{ route('query-pulse.assets', ['path' => 'css/material-symbols-outlined.css']) }}" rel="stylesheet" />
+    <script src="{{ route('query-pulse.assets', ['path' => 'tailwindcss.js']) }}"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -368,15 +368,15 @@
                                 <td class="px-6 py-4 border-b border-outline-variant/5">
                                     <div class="flex space-x-2">
                                         @foreach($issue['type'] as $type)
-                                            @if($type == 'slow_query')
-                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">SLOW QUERY</span>
-                                            @elseif($type == 'duplicate_burst')
-                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">DUPLICATE BURST</span>
-                                            @elseif($type == 'probable_n_plus_1')
-                                            <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">PROBABLE N+1</span>
-                                            @else
-                                            <span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold tracking-widest text-on-surface-variant uppercase">SUSPICIOUS WILDCARD FETCH</span>
-                                            @endif
+                                        @if($type == 'slow_query')
+                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">SLOW QUERY</span>
+                                        @elseif($type == 'duplicate_burst')
+                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">DUPLICATE BURST</span>
+                                        @elseif($type == 'probable_n_plus_1')
+                                        <span class="px-2 py-0.5 bg-warning-container/20 text-[9px] font-bold tracking-widest text-warning uppercase">PROBABLE N+1</span>
+                                        @else
+                                        <span class="px-2 py-0.5 bg-surface-container-highest text-[9px] font-bold tracking-widest text-on-surface-variant uppercase">SUSPICIOUS WILDCARD FETCH</span>
+                                        @endif
                                         @endforeach
                                     </div>
                                 </td>
@@ -425,28 +425,23 @@
             </section>
         </div>
         <footer class="mt-auto px-8 py-6 border-t border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
-            <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-2">
-                    <div class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></div>
-                    <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Cluster: AWS-US-EAST-1</span>
-                </div>
-                <div class="h-4 w-px bg-outline-variant/30"></div>
-                <span class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Last Sync: {{ $lastSync }}</span>
+            <div class="text-[10px] font-label text-on-surface-variant uppercase tracking-widest">
+                Query Pulse Dashboard
             </div>
             <div class="text-[10px] font-label text-outline uppercase tracking-[0.3em]">
-                
+
             </div>
         </footer>
     </main>
 
-    <div class="fixed bottom-8 right-8 z-50">
+    <!-- <div class="fixed bottom-8 right-8 z-50">
         <button class="group relative flex items-center justify-center w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all">
             <span class="material-symbols-outlined" data-icon="terminal">terminal</span>
             <div class="absolute right-16 px-4 py-2 bg-surface-bright text-on-surface text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                 RUN_DEBUG_TRACE
             </div>
         </button>
-    </div>
+    </div> -->
     <script>
         (function() {
             function parseNumber(text) {

@@ -6,7 +6,17 @@ return [
     | Enable query pulse
     |--------------------------------------------------------------------------
     */
-    'enabled' => env('QUERY_PULSE_ENABLED', true),
+    'enabled' => env('QUERY_PULSE_ENABLED', false),
+
+    /**
+     * Basic auth credentials for the dashboard.
+     * @var array<string>
+     * @return array<string>
+     */
+    'auth' => [
+        'username' => env('QUERY_PULSE_AUTH_USERNAME', ''),
+        'password' => env('QUERY_PULSE_AUTH_PASSWORD', ''),
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -30,12 +40,13 @@ return [
         'query-pulse',
         'query-pulse/*',
         '.well-known/*',
+        'vendor/*'
     ],
 
     /**
      * Auto Generate Report every n request
      */
-    'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 100),
+    'auto_generate_report_every' => env('QUERY_PULSE_AUTO_GENERATE_REPORT_EVERY', 10),
 
     /**
      * Set speficif url stack trace to be enabled
@@ -43,6 +54,14 @@ return [
      * @var array<string>
      */
     'enabled_url_stack_trace' => [
-        '*',
-    ]
+        // 'dashboard/*',
+    ],
+
+    /**
+     * Allowed VPN IPs,
+     * Separated by comma
+     * Example: 10.8.0.1,10.8.0.2
+     * @var string
+     */
+    'allowed_vpn_ips' => env('QUERY_PULSE_ALLOWED_VPN_IPS', ''),
 ];
